@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<link rel="icon" href="https://i.postimg.cc/yY1j78X4/images-(7).jpg">
+
+<title>FLAPPY-BCA</title>
+
+<meta property="og:title" content="FLAPPY-BCA">
+<meta property="og:description" content="Tap to fly. How far can you get?">
+<meta property="og:url" content="https://unfav-mibssm.github.io/flappy/">
+<meta property="og:image" content="https://i.postimg.cc/T14hg1zd/Face-PNG-Pic.png">
+<meta property="og:type" content="website">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FLAPPY-BCA">
+<meta name="twitter:image" content="https://i.postimg.cc/T14hg1zd/Face-PNG-Pic.png">
+
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #000;
+    font-family: sans-serif;
+    height: 100%;
+    width: 100%;
+}
+
+#game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #70c5ce url("background.png") repeat-x;
+    background-size: auto 100%;
+}
+
+#base {
+    position: absolute;
+    bottom: 0;
+    width: 200%;
+    height: 112px;
+    background: url("base.png") repeat-x;
+    background-size: auto 100%;
+    z-index: 5;
+}
+
+#bird {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    left: 60px;
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    z-index: 10;
+}
+
+.pipe {
+    position: absolute;
+    width: 52px;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+}
+
+.pipe-top {
+    background-image: url("pipe-top.png");
+}
+
+.pipe-bottom {
+    background-image: url("pipe-bottom.png");
+}
+
+#ui {
+    position: absolute;
+    width: 100%;
+    top: 12%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    pointer-events: none;
+}
+
+.score-digit {
+    height: 40px;
+    width: auto;
+    margin: 0 3px;
+}
+
+#message {
+    position: absolute;
+    width: 100%;
+    top: 26%;
+    text-align: center;
+    color: white;
+    font-size: 22px;
+    z-index: 20;
+    text-shadow:
+        -2px -2px 0 #000,
+         2px -2px 0 #000,
+        -2px  2px 0 #000,
+         2px  2px 0 #000,
+        0 0 6px rgba(0,0,0,0.6);
+}
+
+#gameover-banner {
+    width: 190px;
+    max-width: 55%;
+    margin-bottom: 10px;
+}
+
+.msg-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 4px 0;
+}
+
+.msg-digit {
+    height: 30px;
+    width: auto;
+    margin: 0 2px;
+}
+
+/* =========================
+   CHANGE CHARACTER BUTTON
+   ========================= */
+
+#change-char-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 30;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    border: 3px solid #3b2b1a;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.4);
+    font-family: inherit;
+}
+
+#change-char-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.4);
+}
+
+/* =========================
+   CHARACTER SELECT SCREEN
+   ========================= */
+
+#char-select {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #70c5ce url("background.png") repeat-x;
+    background-size: auto 100%;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 4vh 4vw 2vh;
+    overflow: hidden;
+}
+
+#char-select.hidden {
+    display: none;
+}
+
+#char-select-title {
+    color: #fff;
+    font-size: clamp(20px, 6vw, 34px);
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-align: center;
+    margin: 0 0 3vh 0;
+    text-shadow:
+        -3px -3px 0 #3b2b1a,
+         3px -3px 0 #3b2b1a,
+        -3px  3px 0 #3b2b1a,
+         3px  3px 0 #3b2b1a,
+        0 4px 0 #241a10;
+}
+
+#char-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4vw;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.char-card {
+    background: #ded895;
+    border: 4px solid #3b2b1a;
+    border-radius: 14px;
+    box-shadow: 0 6px 0 #3b2b1a, inset 0 0 0 3px #fff8d6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 6px 12px;
+    cursor: pointer;
+    transition: transform 0.08s ease;
+    user-select: none;
+}
+
+.char-card:active {
+    transform: scale(0.96);
+}
+
+.char-card.selected {
+    background: #ffe27a;
+    border-color: #ff6b00;
+    box-shadow: 0 6px 0 #ff6b00, inset 0 0 0 3px #fff2c2;
+}
+
+.char-card-imgwrap {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.35);
+    border: 3px solid #3b2b1a;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.char-card-imgwrap img {
+    width: 85%;
+    height: 85%;
+    object-fit: contain;
+    image-rendering: -webkit-optimize-contrast;
+}
+
+.char-card-name {
+    font-size: clamp(12px, 3.6vw, 16px);
+    font-weight: 900;
+    color: #3b2b1a;
+    letter-spacing: 0.5px;
+    text-align: center;
+}
+
+.char-card.selected .char-card-name {
+    color: #7a3b00;
+}
+
+.char-card-check {
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 900;
+    color: #ff6b00;
+    height: 14px;
+}
+
+#play-btn {
+    margin-top: 4vh;
+    background: #56b64b;
+    color: #fff;
+    border: 4px solid #2c5c26;
+    border-radius: 12px;
+    padding: 14px 44px;
+    font-size: clamp(18px, 5vw, 24px);
+    font-weight: 900;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #2c5c26;
+    font-family: inherit;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.25);
+}
+
+#play-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #2c5c26;
+}
+
+@media (min-width: 520px) {
+    #char-grid {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 700px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="game" style="display:none;">
+    <button id="change-char-btn">CHANGE CHARACTER</button>
+
+    <div id="ui"></div>
+
+    <div id="message">
+        TAP TO START
+    </div>
+
+    <div id="bird"></div>
+
+    <div id="base"></div>
+</div>
+
+<div id="char-select">
+    <div id="char-select-title">SELECT YOUR CHARACTER</div>
+    <div id="char-grid"></div>
+    <button id="play-btn">PLAY</button>
+</div>
+
+<script>
+
+/* =========================
+   CHARACTERS
+   ========================= */
+
+const CHARACTERS = [
+    {
+        id: 1,
+        name: "Smith",
+        image: "https://i.postimg.cc/T14hg1zd/Face-PNG-Pic.png"
+    },
+    {
+        id: 2,
+        name: "AJP",
+        image: "https://i.postimg.cc/qMtvW8hq/1789627644013.png"
+    },
+    {
+        id: 3,
+        name: "Drake",
+        image: "https://i.postimg.cc/63mNhmhH/1789627756486.png"
+    },
+    {
+        id: 4,
+        name: "RDJ",
+        image: "https://i.postimg.cc/QC7xKDrB/1789627805866.png"
+    }
+];
+
+const CHAR_STORAGE_KEY = "selectedCharacterId";
+
+function getSavedCharacterId() {
+
+    const saved =
+        localStorage.getItem(CHAR_STORAGE_KEY);
+
+    const parsed =
+        saved ? parseInt(saved, 10) : CHARACTERS[0].id;
+
+    const exists =
+        CHARACTERS.some(c => c.id === parsed);
+
+    return exists ? parsed : CHARACTERS[0].id;
+}
+
+function saveCharacterId(id) {
+
+    localStorage.setItem(
+        CHAR_STORAGE_KEY,
+        String(id)
+    );
+}
+
+function getCharacterById(id) {
+
+    return (
+        CHARACTERS.find(c => c.id === id) ||
+        CHARACTERS[0]
+    );
+}
+
+let selectedCharacterId = getSavedCharacterId();
+
+
+/* =========================
+   CHARACTER SELECT UI
+   ========================= */
+
+const charSelectScreen =
+    document.getElementById("char-select");
+
+const charGrid =
+    document.getElementById("char-grid");
+
+const playBtn =
+    document.getElementById("play-btn");
+
+const gameEl =
+    document.getElementById("game");
+
+const changeCharBtn =
+    document.getElementById("change-char-btn");
+
+
+function renderCharGrid() {
+
+    charGrid.innerHTML = "";
+
+    CHARACTERS.forEach(character => {
+
+        const card =
+            document.createElement("div");
+
+        card.className =
+            "char-card" +
+            (
+                character.id === selectedCharacterId
+                    ? " selected"
+                    : ""
+            );
+
+        card.dataset.id = character.id;
+
+        card.innerHTML = `
+            <div class="char-card-imgwrap">
+                <img src="${character.image}" alt="${character.name}">
+            </div>
+            <div class="char-card-name">${character.name}</div>
+            <div class="char-card-check">${
+                character.id === selectedCharacterId
+                    ? "✓ SELECTED"
+                    : ""
+            }</div>
+        `;
+
+        card.addEventListener(
+            "click",
+            () => {
+
+                selectedCharacterId = character.id;
+
+                saveCharacterId(selectedCharacterId);
+
+                renderCharGrid();
+            }
+        );
+
+        charGrid.appendChild(card);
+    });
+}
+
+
+function applySelectedBirdImage() {
+
+    const character =
+        getCharacterById(selectedCharacterId);
+
+    bird.style.backgroundImage =
+        `url("${character.image}")`;
+}
+
+
+function showCharSelect() {
+
+    running = false;
+
+    if (animation) {
+        cancelAnimationFrame(animation);
+    }
+
+    gameEl.style.display = "none";
+
+    charSelectScreen.classList.remove("hidden");
+
+    renderCharGrid();
+}
+
+
+function hideCharSelect() {
+
+    charSelectScreen.classList.add("hidden");
+
+    gameEl.style.display = "block";
+}
+
+
+playBtn.addEventListener(
+    "click",
+    () => {
+
+        applySelectedBirdImage();
+
+        hideCharSelect();
+
+        message.style.display = "block";
+
+        message.innerHTML = "TAP TO START";
+
+        reset();
+    }
+);
+
+
+changeCharBtn.addEventListener(
+    "click",
+    () => {
+
+        showCharSelect();
+    }
+);
+
+
+/* =========================
+   GAME ELEMENTS
+   ========================= */
+
+const game = document.getElementById("game");
+const bird = document.getElementById("bird");
+const base = document.getElementById("base");
+const ui = document.getElementById("ui");
+const message = document.getElementById("message");
+
+
+/* =========================
+   DIE SOUND
+   ========================= */
+
+const DIE_SOUND_FILE =
+    "https://files.catbox.moe/pjk10q.mp3";
+
+let dieAudio = null;
+
+if (DIE_SOUND_FILE) {
+    dieAudio = new Audio(DIE_SOUND_FILE);
+    dieAudio.preload = "auto";
+}
+
+
+/* =========================
+   AUDIO
+   ========================= */
+
+const actx =
+    new (window.AudioContext ||
+         window.webkitAudioContext)();
+
+function envGain(ctx, t0, attack, decay, peak) {
+
+    const g = ctx.createGain();
+
+    g.gain.setValueAtTime(0, t0);
+
+    g.gain.linearRampToValueAtTime(
+        peak,
+        t0 + attack
+    );
+
+    g.gain.exponentialRampToValueAtTime(
+        0.001,
+        t0 + attack + decay
+    );
+
+    return g;
+}
+
+
+function playWing() {
+
+    const t0 = actx.currentTime;
+
+    const osc = actx.createOscillator();
+
+    osc.type = "square";
+
+    osc.frequency.setValueAtTime(320, t0);
+
+    osc.frequency.exponentialRampToValueAtTime(
+        760,
+        t0 + 0.09
+    );
+
+    const g = envGain(
+        actx,
+        t0,
+        0.008,
+        0.12,
+        0.22
+    );
+
+    osc.connect(g).connect(actx.destination);
+
+    osc.start(t0);
+    osc.stop(t0 + 0.15);
+}
+
+
+function playPoint() {
+
+    const t0 = actx.currentTime;
+
+    const osc = actx.createOscillator();
+
+    osc.type = "sine";
+
+    osc.frequency.setValueAtTime(880, t0);
+
+    osc.frequency.setValueAtTime(
+        1320,
+        t0 + 0.09
+    );
+
+    const g = envGain(
+        actx,
+        t0,
+        0.005,
+        0.2,
+        0.3
+    );
+
+    osc.connect(g).connect(actx.destination);
+
+    osc.start(t0);
+    osc.stop(t0 + 0.25);
+}
+
+
+function playHit() {
+
+    const t0 = actx.currentTime;
+
+    const bufferSize =
+        actx.sampleRate * 0.2;
+
+    const buffer =
+        actx.createBuffer(
+            1,
+            bufferSize,
+            actx.sampleRate
+        );
+
+    const data =
+        buffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i++) {
+
+        data[i] =
+            (Math.random() * 2 - 1) *
+            (1 - i / bufferSize);
+    }
+
+    const noise =
+        actx.createBufferSource();
+
+    noise.buffer = buffer;
+
+    const filter =
+        actx.createBiquadFilter();
+
+    filter.type = "lowpass";
+
+    filter.frequency.setValueAtTime(
+        1800,
+        t0
+    );
+
+    const g =
+        actx.createGain();
+
+    g.gain.setValueAtTime(0.5, t0);
+
+    g.gain.exponentialRampToValueAtTime(
+        0.001,
+        t0 + 0.2
+    );
+
+    noise
+        .connect(filter)
+        .connect(g)
+        .connect(actx.destination);
+
+    noise.start(t0);
+    noise.stop(t0 + 0.2);
+}
+
+
+function playDieSynth() {
+
+    const t0 = actx.currentTime;
+
+    const osc =
+        actx.createOscillator();
+
+    osc.type = "sawtooth";
+
+    osc.frequency.setValueAtTime(
+        420,
+        t0
+    );
+
+    osc.frequency.exponentialRampToValueAtTime(
+        80,
+        t0 + 0.6
+    );
+
+    const g =
+        envGain(
+            actx,
+            t0,
+            0.01,
+            0.65,
+            0.25
+        );
+
+    osc
+        .connect(g)
+        .connect(actx.destination);
+
+    osc.start(t0);
+    osc.stop(t0 + 0.7);
+}
+
+
+function playDie() {
+
+    if (dieAudio) {
+
+        dieAudio.currentTime = 0;
+
+        dieAudio.play().catch(() => {
+            playDieSynth();
+        });
+
+    } else {
+
+        playDieSynth();
+
+    }
+}
+
+
+const sounds = {
+    wing: playWing,
+    point: playPoint,
+    hit: playHit,
+    die: playDie
+};
+
+
+let audioReady = false;
+
+function unlockAudio() {
+
+    if (audioReady) return;
+
+    if (actx.state === "suspended") {
+        actx.resume();
+    }
+
+    audioReady = true;
+}
+
+
+function playSound(fn) {
+
+    if (actx.state === "suspended") {
+        actx.resume();
+    }
+
+    fn();
+}
+
+
+/* =========================
+   GAME STATE
+   ========================= */
+
+let birdY;
+let velocity;
+
+let gravity = 1260;
+let jump = -420;
+
+const PIPE_SPEED_BASE = 180;
+const SPEED_LEVEL_UP_EVERY = 50;
+const SPEED_LEVEL_UP_AMOUNT = 0.15;
+
+
+function getPipeSpeed(currentScore) {
+
+    const level =
+        Math.floor(
+            currentScore /
+            SPEED_LEVEL_UP_EVERY
+        );
+
+    return PIPE_SPEED_BASE *
+        (1 + level *
+        SPEED_LEVEL_UP_AMOUNT);
+}
+
+
+let pipes = [];
+let score = 0;
+
+let best =
+    localStorage.getItem("bestScore") || 0;
+
+let running = false;
+let animation;
+let lastTime = null;
+
+
+/* =========================
+   SCORE
+   ========================= */
+
+function updateScoreUI(currentScore) {
+
+    ui.innerHTML = "";
+
+    currentScore
+        .toString()
+        .split("")
+        .forEach(ch => {
+
+            const img =
+                document.createElement("img");
+
+            img.src = `${ch}.png`;
+
+            img.className =
+                "score-digit";
+
+            ui.appendChild(img);
+        });
+}
+
+
+function digitImagesHTML(num, className) {
+
+    return num
+        .toString()
+        .split("")
+        .map(
+            ch =>
+            `<img src="${ch}.png"
+             class="${className}">`
+        )
+        .join("");
+}
+
+
+/* =========================
+   RESET
+   ========================= */
+
+function reset() {
+
+    birdY =
+        window.innerHeight / 2;
+
+    velocity = 0;
+
+    lastTime = null;
+
+    pipes.forEach(p => {
+
+        if (p.top)
+            p.top.remove();
+
+        if (p.bottom)
+            p.bottom.remove();
+
+    });
+
+    pipes = [];
+
+    score = 0;
+
+    updateScoreUI(0);
+
+    bird.style.top =
+        birdY + "px";
+
+    bird.style.transform =
+        "rotate(0deg)";
+}
+
+
+/* =========================
+   START
+   ========================= */
+
+function start() {
+
+    unlockAudio();
+
+    reset();
+
+    running = true;
+
+    message.style.display = "none";
+
+    animation =
+        requestAnimationFrame(loop);
+}
+
+
+/* =========================
+   GAME LOOP
+   ========================= */
+
+function loop(timestamp) {
+
+    if (!running) return;
+
+    if (lastTime === null) {
+        lastTime = timestamp;
+    }
+
+    let dt =
+        (timestamp - lastTime) / 1000;
+
+    lastTime = timestamp;
+
+    dt = Math.min(dt, 0.05);
+
+
+    velocity += gravity * dt;
+
+    birdY += velocity * dt;
+
+    bird.style.top =
+        birdY + "px";
+
+    bird.style.transform =
+        `rotate(${
+            Math.min(
+                velocity * 0.05,
+                90
+            )
+        }deg)`;
+
+
+    const ground =
+        base.offsetTop;
+
+
+    /* Ground collision */
+
+    if (
+        birdY +
+        bird.offsetHeight >=
+        ground
+    ) {
+
+        birdY =
+            ground -
+            bird.offsetHeight;
+
+        bird.style.top =
+            birdY + "px";
+
+        end(true);
+
+        return;
+    }
+
+
+    /* Create pipe */
+
+    if (
+        pipes.length === 0 ||
+        pipes[pipes.length - 1].x <
+        window.innerWidth - 300
+    ) {
+
+        createPipe();
+    }
+
+
+    /* Move pipes */
+
+    pipes.forEach((p, i) => {
+
+        p.x -=
+            getPipeSpeed(score) *
+            dt;
+
+        p.top.style.left =
+            p.x + "px";
+
+        p.bottom.style.left =
+            p.x + "px";
+
+
+        /* Collision */
+
+        if (collide(p)) {
+
+            end(false);
+
+            return;
+        }
+
+
+        /* Score */
+
+        if (
+            !p.passed &&
+            p.x + 52 < 60
+        ) {
+
+            p.passed = true;
+
+            score++;
+
+            updateScoreUI(score);
+
+            playSound(
+                sounds.point
+            );
+
+
+            if (score > best) {
+
+                best = score;
+
+                localStorage.setItem(
+                    "bestScore",
+                    best
+                );
+            }
+        }
+
+
+        /* Remove pipe */
+
+        if (p.x < -80) {
+
+            p.top.remove();
+
+            p.bottom.remove();
+
+            pipes.splice(i, 1);
+        }
+
+    });
+
+
+    animation =
+        requestAnimationFrame(loop);
+}
+
+
+/* =========================
+   PIPES
+   ========================= */
+
+function createPipe() {
+
+    const gap = 200;
+    const min = 80;
+
+    const ground =
+        base.offsetTop;
+
+    const range =
+        ground -
+        gap -
+        min * 2;
+
+    const topHeight =
+        Math.random() *
+        range +
+        min;
+
+
+    const top =
+        document.createElement("div");
+
+    top.className =
+        "pipe pipe-top";
+
+    top.style.height =
+        topHeight + "px";
+
+    top.style.top = "0";
+
+
+    const bottom =
+        document.createElement("div");
+
+    bottom.className =
+        "pipe pipe-bottom";
+
+    bottom.style.height =
+        (
+            ground -
+            topHeight -
+            gap
+        ) + "px";
+
+    bottom.style.bottom =
+        (
+            window.innerHeight -
+            ground
+        ) + "px";
+
+
+    game.appendChild(top);
+    game.appendChild(bottom);
+
+
+    pipes.push({
+        x: window.innerWidth,
+        top: top,
+        bottom: bottom,
+        passed: false
+    });
+}
+
+
+/* =========================
+   COLLISION
+   ========================= */
+
+function collide(p) {
+
+    const pad = 8;
+
+    const b =
+        bird.getBoundingClientRect();
+
+    const t =
+        p.top.getBoundingClientRect();
+
+    const bt =
+        p.bottom.getBoundingClientRect();
+
+
+    const birdBox = {
+
+        left: b.left + pad,
+        right: b.right - pad,
+        top: b.top + pad,
+        bottom: b.bottom - pad
+
+    };
+
+
+    return (
+
+        birdBox.right > t.left &&
+        birdBox.left < t.right &&
+        birdBox.top < t.bottom
+
+    ) || (
+
+        birdBox.right > bt.left &&
+        birdBox.left < bt.right &&
+        birdBox.bottom > bt.top
+
+    );
+}
+
+
+/* =========================
+   GAME OVER
+   ========================= */
+
+function end(pipeHit) {
+
+    if (!running) return;
+
+    running = false;
+
+    cancelAnimationFrame(
+        animation
+    );
+
+
+    playSound(
+        sounds.hit
+    );
+
+
+    setTimeout(() => {
+
+        playSound(
+            sounds.die
+        );
+
+    }, 150);
+
+
+    message.innerHTML =
+
+        `<img src="gameover.png"
+              id="gameover-banner"><br>` +
+
+        `<div class="msg-row">
+            SCORE:&nbsp;
+            ${digitImagesHTML(
+                score,
+                "msg-digit"
+            )}
+        </div>` +
+
+        `<div class="msg-row">
+            BEST:&nbsp;
+            ${digitImagesHTML(
+                best,
+                "msg-digit"
+            )}
+        </div>` +
+
+        `<br>TAP TO RESTART`;
+
+
+    message.style.display =
+        "block";
+}
+
+
+/* =========================
+   INPUT
+   ========================= */
+
+function input(e) {
+
+    if (
+        !charSelectScreen.classList.contains(
+            "hidden"
+        )
+    ) {
+        return;
+    }
+
+    unlockAudio();
+
+
+    if (
+        e.type === "keydown" &&
+        e.code !== "Space"
+    ) {
+
+        return;
+    }
+
+
+    if (
+        e.target === changeCharBtn
+    ) {
+        return;
+    }
+
+
+    if (!running) {
+
+        start();
+
+    } else {
+
+        velocity = jump;
+
+        playSound(
+            sounds.wing
+        );
+    }
+}
+
+
+window.addEventListener(
+    "mousedown",
+    input
+);
+
+
+window.addEventListener(
+    "keydown",
+    input
+);
+
+
+window.addEventListener(
+    "touchstart",
+    e => {
+
+        if (
+            charSelectScreen.classList.contains(
+                "hidden"
+            ) &&
+            e.target !== changeCharBtn
+        ) {
+            e.preventDefault();
+        }
+
+        input(e);
+
+    },
+    {
+        passive: false
+    }
+);
+
+
+/* =========================
+   INITIALIZE
+   ========================= */
+
+showCharSelect();
+
+</script>
+
+</body>
+</html>
